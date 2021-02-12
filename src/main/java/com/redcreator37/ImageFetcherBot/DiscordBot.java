@@ -1,5 +1,6 @@
 package com.redcreator37.ImageFetcherBot;
 
+import com.redcreator37.ImageFetcherBot.Grabbing.CommandHandler;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -36,8 +37,8 @@ public class DiscordBot {
      * Registers the bot commands
      */
     private static void setUpCommands() {
-        commands.put("grablinks", event -> Grabber.grabLinks(event).then());
-        commands.put("grabfiles", event -> Grabber.grabFiles(event).then());
+        commands.put("grablinks", event -> CommandHandler.grabLinks(event).then());
+        commands.put("grabfiles", event -> CommandHandler.grabFiles(event).then());
     }
 
     /**
