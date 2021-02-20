@@ -15,14 +15,19 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Objects;
 
 public class Grabber {
 
-    Grabber(OutputDefinition output) {
+    Grabber(OutputDefinition output, Snowflake progressMsg) {
         this.output = output;
+        this.progressMsg = progressMsg;
     }
 
     private final OutputDefinition output;
+
+    private final Snowflake progressMsg;
 
     Flux<Attachment> grabAttachments(MessageChannel channel, Snowflake before) {
         return channel.getMessagesBefore(before)
@@ -41,7 +46,15 @@ public class Grabber {
     void downloadFiles(MessageChannel channel, Snowflake before) {
         if (!makeDirIfNotExists(new File("retrieved")))
             return;
-        grabAttachments(channel, before).doOnNext(Grabber::downloadAttachment);
+        List<Attachment> attachments = grabAttachments(channel, before).collectList().block();
+        for (int i = 0; i < Objects.requireNonNull(attachments).size(); i++) {
+            reportProgress(i + 1, attachments.size());
+            downloadAttachment(attachments.get(i));
+        }
+    }
+
+    private void reportProgress(int progress, int goal) {
+
     }
 
     private static boolean makeDirIfNotExists(File dir) {

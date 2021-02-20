@@ -7,23 +7,19 @@ import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.Objects;
 
 public class CommandHandler {
 
     public static Mono<Void> grabFiles(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
-        channel.createEmbed(spec -> {
-            spec.setTitle("Hold on...");
-            spec.setColor(Color.GREEN);
-            spec.addField("Looking for all files in this channel...",
-                    "You will be notified once the process has been completed", false);
-            spec.setTimestamp(Instant.now());
-        }).block();
+        Snowflake progressMsg = Objects.requireNonNull(channel.createEmbed(spec ->
+                ProgressEmbeds.progressEmbed(spec, 1, 1)).block()).getId();
 
         String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("retrieved",
-                OutputDefinition.Type.FILE_DIRECTORY));
+                OutputDefinition.Type.FILE_DIRECTORY), progressMsg);
         grabber.downloadFiles(channel, params.length == 1
                 ? Snowflake.of(Instant.now())
                 : Snowflake.of(params[1]));
@@ -41,17 +37,12 @@ public class CommandHandler {
     public static Mono<Void> grabLinks(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
-        channel.createEmbed(spec -> {
-            spec.setTitle("Hold on...");
-            spec.setColor(Color.YELLOW);
-            spec.addField("Looking for all links in this channel...",
-                    "You will be notified once the process has been completed", false);
-            spec.setTimestamp(Instant.now());
-        }).block();
+        Snowflake progressMsg = Objects.requireNonNull(channel.createEmbed(spec ->
+                ProgressEmbeds.progressEmbed(spec, 1, 1)).block()).getId();
 
         String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("output.txt",
-                OutputDefinition.Type.LINK_FILE));
+                OutputDefinition.Type.LINK_FILE), progressMsg);
         grabber.downloadFiles(channel, params.length == 1
                 ? Snowflake.of(Instant.now())
                 : Snowflake.of(params[1]));
