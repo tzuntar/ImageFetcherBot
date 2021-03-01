@@ -9,14 +9,8 @@ import reactor.core.publisher.Mono;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
@@ -46,12 +40,12 @@ public class Grabber {
     }
 
     void downloadFiles(MessageChannel channel, Snowflake before) {
-        if (!makeDirIfNotExists(new File("retrieved")))
+        if (!Downloader.makeDirIfNotExists(new File("retrieved")))
             return;
         List<Attachment> attachments = grabAttachments(channel, before).collectList().block();
         for (int i = 0; i < Objects.requireNonNull(attachments).size(); i++) {
             reportProgress(i + 1, attachments.size()).block();
-            downloadAttachment(attachments.get(i));
+            Downloader.downloadAttachment(attachments.get(i));
         }
     }
 
@@ -60,27 +54,6 @@ public class Grabber {
         return progressMsg.getChannel().flatMap(messageChannel ->
                 messageChannel.createEmbed(spec -> ProgressEmbeds
                         .progressEmbed(spec, progress, goal))).then();
-    }
-
-    private static boolean makeDirIfNotExists(File dir) {
-        return dir.exists() || dir.mkdir();
-    }
-
-    private static void downloadAttachment(Attachment attachment) {
-        try {
-            ReadableByteChannel readableByteChannel = Channels
-                    .newChannel(new URL(attachment.getUrl()).openStream());
-
-            // prefix filenames with snowflakes to avoid collisions
-            Path outPath = Paths.get("retrieved", attachment.getId().toString()
-                    + "_" + attachment.getFilename());
-
-            FileOutputStream fileOutputStream = new FileOutputStream(outPath.toFile());
-            fileOutputStream.getChannel()
-                    .transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-        } catch (IOException e) {   // todo: better error and progress reporting
-            System.err.println(e.getMessage());
-        }
     }
 
 }
