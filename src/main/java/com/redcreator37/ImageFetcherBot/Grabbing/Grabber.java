@@ -2,8 +2,10 @@ package com.redcreator37.ImageFetcherBot.Grabbing;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Attachment;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,14 +22,14 @@ import java.util.Objects;
 
 public class Grabber {
 
-    Grabber(OutputDefinition output, Snowflake progressMsg) {
+    Grabber(OutputDefinition output, Message progressMsg) {
         this.output = output;
         this.progressMsg = progressMsg;
     }
 
     private final OutputDefinition output;
 
-    private final Snowflake progressMsg;
+    private final Message progressMsg;
 
     Flux<Attachment> grabAttachments(MessageChannel channel, Snowflake before) {
         return channel.getMessagesBefore(before)
@@ -48,13 +50,16 @@ public class Grabber {
             return;
         List<Attachment> attachments = grabAttachments(channel, before).collectList().block();
         for (int i = 0; i < Objects.requireNonNull(attachments).size(); i++) {
-            reportProgress(i + 1, attachments.size());
+            reportProgress(i + 1, attachments.size()).block();
             downloadAttachment(attachments.get(i));
         }
     }
 
-    private void reportProgress(int progress, int goal) {
-
+    private Mono<Void> reportProgress(int progress, int goal) {
+        progressMsg.getEmbeds().clear();
+        return progressMsg.getChannel().flatMap(messageChannel ->
+                messageChannel.createEmbed(spec -> ProgressEmbeds
+                        .progressEmbed(spec, progress, goal))).then();
     }
 
     private static boolean makeDirIfNotExists(File dir) {

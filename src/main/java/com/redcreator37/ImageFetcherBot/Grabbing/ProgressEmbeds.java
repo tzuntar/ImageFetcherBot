@@ -8,11 +8,11 @@ import java.time.Instant;
 
 public class ProgressEmbeds {
 
-    public static void progressEmbed(EmbedCreateSpec spec, int progressFrom, int progressTo) {
+    public static void progressEmbed(EmbedCreateSpec spec, int progress, int goal) {
         spec.setTitle("Hold on...");
         spec.setColor(Color.GREEN);
         spec.addField("Looking for all files in this channel...",
-                MessageFormat.format("Progress: {0} of {1}", progressFrom, progressTo), false);
+                MessageFormat.format("Progress: {0} of {1}", progress, goal), false);
         spec.setTimestamp(Instant.now());
     }
 

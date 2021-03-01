@@ -2,20 +2,20 @@ package com.redcreator37.ImageFetcherBot.Grabbing;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
-import java.util.Objects;
 
 public class CommandHandler {
 
     public static Mono<Void> grabFiles(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
-        Snowflake progressMsg = Objects.requireNonNull(channel.createEmbed(spec ->
-                ProgressEmbeds.progressEmbed(spec, 1, 1)).block()).getId();
+        Message progressMsg = channel.createEmbed(spec ->
+                ProgressEmbeds.progressEmbed(spec, 1, 1)).block();
 
         String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("retrieved",
@@ -37,8 +37,8 @@ public class CommandHandler {
     public static Mono<Void> grabLinks(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
-        Snowflake progressMsg = Objects.requireNonNull(channel.createEmbed(spec ->
-                ProgressEmbeds.progressEmbed(spec, 1, 1)).block()).getId();
+        Message progressMsg = channel.createEmbed(spec ->
+                ProgressEmbeds.progressEmbed(spec, 1, 1)).block();
 
         String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("output.txt",
