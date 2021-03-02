@@ -43,7 +43,17 @@ public class Grabber {
      */
     private final Message progressMsg;
 
+    /**
+     * Returns all attachments in this {@link MessageChannel}
+     *
+     * @param channel the {@link MessageChannel} to get the attachments from
+     * @param before  the {@link Snowflake} ID before which the messages
+     *                will be downloaded. Set to <code>null</code> to
+     *                attempt to download all items
+     * @return a {@link Flux} of all attachments
+     */
     Flux<Attachment> grabAttachments(MessageChannel channel, Snowflake before) {
+        if (before == null) before = Snowflake.of(Instant.now());
         return channel.getMessagesBefore(before)
                 .flatMap(message -> Flux.fromIterable(message.getAttachments()));
     }
@@ -65,14 +75,13 @@ public class Grabber {
     /**
      * Downloads all images, videos and other files
      *
-     * @param channel the {@link discord4j.core.object.entity.channel.Channel}
-     *                from which to download the attachments
+     * @param channel the {@link MessageChannel} from which to download
+     *                the attachments
      * @param before  the {@link Snowflake} ID before which the messages
      *                will be downloaded. Set to <code>null</code> to
      *                attempt to download all items
      */
     void downloadFiles(MessageChannel channel, Snowflake before) {
-        if (before == null) before = Snowflake.of(Instant.now());
         if (!Downloader.makeDirIfNotExists(new File("retrieved")))
             return;
         List<Attachment> attachments = grabAttachments(channel, before).collectList().block();
