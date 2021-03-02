@@ -28,4 +28,30 @@ public class ProgressEmbeds {
         spec.setTimestamp(Instant.now());
     }
 
+    /**
+     * Creates an embed saying that retrieving files has been finished
+     *
+     * @param spec a blank {@link EmbedCreateSpec}
+     */
+    public static void retrievingFilesFinished(EmbedCreateSpec spec) {
+        spec.setTitle("Done!");
+        spec.setColor(Color.GREEN);
+        spec.addField("All files have been retrieved",
+                "Look in the folder called `retrieved`", false);
+        spec.setTimestamp(Instant.now());
+    }
+
+    /**
+     * Creates an embed saying that saving the links has been finished
+     *
+     * @param spec a blank {@link EmbedCreateSpec}
+     */
+    public static void savingLinksFinished(EmbedCreateSpec spec) {
+        spec.setTitle("Done!");
+        spec.setColor(Color.GREEN);
+        spec.addField("All links have been retrieved",
+                "Filename: `output.txt`", false);
+        spec.setTimestamp(Instant.now());
+    }
+
 }

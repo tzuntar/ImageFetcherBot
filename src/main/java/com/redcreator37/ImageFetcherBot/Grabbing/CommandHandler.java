@@ -4,10 +4,7 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
-import discord4j.rest.util.Color;
 import reactor.core.publisher.Mono;
-
-import java.time.Instant;
 
 /**
  * Manages general command handling and redirection
@@ -35,13 +32,7 @@ public class CommandHandler {
         grabber.grab(channel, params.length == 1
                 ? null : Snowflake.of(params[1]));
 
-        channel.createEmbed(spec -> {
-            spec.setTitle("Done!");
-            spec.setColor(Color.GREEN);
-            spec.addField("All files have been retrieved",
-                    "Look in the folder called `retrieved`", false);
-            spec.setTimestamp(Instant.now());
-        }).block();
+        channel.createEmbed(ProgressEmbeds::retrievingFilesFinished).block();
         return Mono.empty();
     }
 
@@ -64,13 +55,7 @@ public class CommandHandler {
         grabber.grab(channel, params.length == 1
                 ? null : Snowflake.of(params[1]));
 
-        channel.createEmbed(spec -> {
-            spec.setTitle("Done!");
-            spec.setColor(Color.GREEN);
-            spec.addField("All links have been retrieved",
-                    "Filename: `output.txt`", false);
-            spec.setTimestamp(Instant.now());
-        }).block();
+        channel.createEmbed(ProgressEmbeds::savingLinksFinished).block();
         return Mono.empty();
     }
 
