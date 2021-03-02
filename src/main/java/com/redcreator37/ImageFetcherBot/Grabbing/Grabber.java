@@ -100,8 +100,9 @@ public class Grabber {
         if (!Downloader.makeDirIfNotExists(new File("retrieved")))
             return;
         List<Attachment> attachments = grabAttachments(channel, before).collectList().block();
-        for (int i = 0; i < Objects.requireNonNull(attachments).size(); i++) {
-            reportProgress(i + 1, attachments.size()).block();
+        for (int i = 1; i <= Objects.requireNonNull(attachments).size(); i++) {
+            if (i % 20 == 0)    // only create a new embed for every 20 items
+                reportProgress(i + 1, attachments.size()).block();
             Downloader.downloadAttachment(attachments.get(i));
         }
     }

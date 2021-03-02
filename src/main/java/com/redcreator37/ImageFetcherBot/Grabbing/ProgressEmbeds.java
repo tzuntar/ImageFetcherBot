@@ -25,6 +25,7 @@ public class ProgressEmbeds {
         spec.setColor(Color.GREEN);
         spec.addField("Looking for files in this channel...",
                 MessageFormat.format("Progress: {0} of {1}", progress, goal), false);
+        spec.setDescription("The status updates for every 20 items");
         spec.setTimestamp(Instant.now());
     }
 
