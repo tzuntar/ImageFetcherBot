@@ -32,7 +32,7 @@ public class CommandHandler {
         String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("retrieved",
                 OutputDefinition.Type.FILE_DIRECTORY), progressMsg);
-        grabber.downloadFiles(channel, params.length == 1
+        grabber.grab(channel, params.length == 1
                 ? null : Snowflake.of(params[1]));
 
         channel.createEmbed(spec -> {
@@ -61,11 +61,9 @@ public class CommandHandler {
         String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("output.txt",
                 OutputDefinition.Type.LINK_FILE), progressMsg);
-        grabber.downloadFiles(channel, params.length == 1
+        grabber.grab(channel, params.length == 1
                 ? null : Snowflake.of(params[1]));
 
-        Snowflake before = Snowflake.of(params[1]);
-        grabber.saveUrls(grabber.grabAttachments(channel, before));
         channel.createEmbed(spec -> {
             spec.setTitle("Done!");
             spec.setColor(Color.GREEN);

@@ -48,14 +48,29 @@ public class Grabber {
      *
      * @param channel the {@link MessageChannel} to get the attachments from
      * @param before  the {@link Snowflake} ID before which the messages
-     *                will be downloaded. Set to <code>null</code> to
-     *                attempt to download all items
+     *                will be downloaded. Set to {@code null} to attempt
+     *                to download all items
      * @return a {@link Flux} of all attachments
      */
-    Flux<Attachment> grabAttachments(MessageChannel channel, Snowflake before) {
+    private Flux<Attachment> grabAttachments(MessageChannel channel, Snowflake before) {
         if (before == null) before = Snowflake.of(Instant.now());
         return channel.getMessagesBefore(before)
                 .flatMap(message -> Flux.fromIterable(message.getAttachments()));
+    }
+
+    /**
+     * Runs the grabber
+     *
+     * @param channel the {@link MessageChannel} on which to run the
+     *                grabber
+     * @param before  the {@link Snowflake} ID before which the messages
+     *                will be downloaded. Set to {@code null} to attempt
+     *                to download all items
+     */
+    void grab(MessageChannel channel, Snowflake before) {
+        if (output.getType() == OutputDefinition.Type.LINK_FILE)
+            saveUrls(grabAttachments(channel, before));
+        else downloadFiles(channel, before);
     }
 
     /**
@@ -63,7 +78,7 @@ public class Grabber {
      *
      * @param attachments the {@link List<Attachment>} with attachments
      */
-    void saveUrls(Flux<Attachment> attachments) {
+    private void saveUrls(Flux<Attachment> attachments) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(output.getLocation()))) {
             for (Attachment a : attachments.toIterable())
                 writer.write(a.getUrl() + "\n");
@@ -78,10 +93,10 @@ public class Grabber {
      * @param channel the {@link MessageChannel} from which to download
      *                the attachments
      * @param before  the {@link Snowflake} ID before which the messages
-     *                will be downloaded. Set to <code>null</code> to
-     *                attempt to download all items
+     *                will be downloaded. Set to {@code null} to attempt
+     *                to download all items
      */
-    void downloadFiles(MessageChannel channel, Snowflake before) {
+    private void downloadFiles(MessageChannel channel, Snowflake before) {
         if (!Downloader.makeDirIfNotExists(new File("retrieved")))
             return;
         List<Attachment> attachments = grabAttachments(channel, before).collectList().block();

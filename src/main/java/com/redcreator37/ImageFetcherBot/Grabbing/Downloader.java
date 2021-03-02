@@ -21,8 +21,8 @@ public final class Downloader {
      * Checks if this directory exists and creates it if it doesn't
      *
      * @param dir the directory {@link File} to look for
-     * @return <code>true</code> if the directory exists or was
-     * successfully created, <code>false</code> otherwise.
+     * @return {@code true} if the directory exists or was
+     * successfully created, {@code false} otherwise.
      */
     static boolean makeDirIfNotExists(File dir) {
         return dir.exists() || dir.mkdir();
