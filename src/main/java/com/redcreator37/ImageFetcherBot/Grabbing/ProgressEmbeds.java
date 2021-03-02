@@ -23,7 +23,7 @@ public class ProgressEmbeds {
     public static void progressEmbed(EmbedCreateSpec spec, int progress, int goal) {
         spec.setTitle("Hold on...");
         spec.setColor(Color.GREEN);
-        spec.addField("Looking for all files in this channel...",
+        spec.addField("Looking for files in this channel...",
                 MessageFormat.format("Progress: {0} of {1}", progress, goal), false);
         spec.setTimestamp(Instant.now());
     }
@@ -36,7 +36,7 @@ public class ProgressEmbeds {
     public static void retrievingFilesFinished(EmbedCreateSpec spec) {
         spec.setTitle("Done!");
         spec.setColor(Color.GREEN);
-        spec.addField("All files have been retrieved",
+        spec.addField("All files have been saved",
                 "Look in the folder called `retrieved`", false);
         spec.setTimestamp(Instant.now());
     }
@@ -49,8 +49,8 @@ public class ProgressEmbeds {
     public static void savingLinksFinished(EmbedCreateSpec spec) {
         spec.setTitle("Done!");
         spec.setColor(Color.GREEN);
-        spec.addField("All links have been retrieved",
-                "Filename: `output.txt`", false);
+        spec.addField("All links have been saved",
+                "Look in the file called `output.txt`", false);
         spec.setTimestamp(Instant.now());
     }
 
