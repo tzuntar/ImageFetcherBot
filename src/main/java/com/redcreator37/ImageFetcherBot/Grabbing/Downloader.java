@@ -11,19 +11,38 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Downloader {
+/**
+ * Contains methods for retrieving files, pictures and
+ * other data from the network
+ */
+public final class Downloader {
+
+    /**
+     * Checks if this directory exists and creates it if it doesn't
+     *
+     * @param dir the directory {@link File} to look for
+     * @return <code>true</code> if the directory exists or was
+     * successfully created, <code>false</code> otherwise.
+     */
     static boolean makeDirIfNotExists(File dir) {
         return dir.exists() || dir.mkdir();
     }
 
+    /**
+     * Downloads this attachment object and saves it
+     *
+     * @param attachment the {@link Attachment} to download
+     */
     static void downloadAttachment(Attachment attachment) {
         try {
             ReadableByteChannel readableByteChannel = Channels
                     .newChannel(new URL(attachment.getUrl()).openStream());
 
-            // prefix filenames with snowflakes to avoid collisions
+            // adds attachment snowflake to the filename to avoid collisions
             Path outPath = Paths.get("retrieved", attachment.getId().toString()
-                    + "_" + attachment.getFilename());
+                    + "_" + attachment.getFilename()
+                    .replace('{', ' ')      // replaces the opening and closing
+                    .replace('}', ' '));    // snowflake ID string brackets
 
             FileOutputStream fileOutputStream = new FileOutputStream(outPath.toFile());
             fileOutputStream.getChannel()
@@ -32,4 +51,5 @@ public class Downloader {
             System.err.println(e.getMessage());
         }
     }
+
 }

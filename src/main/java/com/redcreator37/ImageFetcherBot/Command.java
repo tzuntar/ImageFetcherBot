@@ -4,7 +4,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import reactor.core.publisher.Mono;
 
 /**
- * Represents the bot's command
+ * Represents a bot command
  */
 public interface Command {
 

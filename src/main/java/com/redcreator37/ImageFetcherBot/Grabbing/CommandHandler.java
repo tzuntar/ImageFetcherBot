@@ -9,8 +9,20 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 
+/**
+ * Manages general command handling and redirection
+ */
+@SuppressWarnings("BlockingMethodInNonBlockingContext")
 public class CommandHandler {
 
+    /**
+     * Downloads all files in the channel in which the message was
+     * sent
+     *
+     * @param event the {@link MessageCreateEvent} which occurred when
+     *              the message was sent
+     * @return an empty {@link Mono}
+     */
     public static Mono<Void> grabFiles(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
@@ -21,8 +33,7 @@ public class CommandHandler {
         Grabber grabber = new Grabber(new OutputDefinition("retrieved",
                 OutputDefinition.Type.FILE_DIRECTORY), progressMsg);
         grabber.downloadFiles(channel, params.length == 1
-                ? Snowflake.of(Instant.now())
-                : Snowflake.of(params[1]));
+                ? null : Snowflake.of(params[1]));
 
         channel.createEmbed(spec -> {
             spec.setTitle("Done!");
@@ -34,6 +45,13 @@ public class CommandHandler {
         return Mono.empty();
     }
 
+    /**
+     * Saves all links in the channel in which the message was sent
+     *
+     * @param event the {@link MessageCreateEvent} which occurred when
+     *              the message was sent
+     * @return an empty {@link Mono}
+     */
     public static Mono<Void> grabLinks(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
@@ -44,8 +62,7 @@ public class CommandHandler {
         Grabber grabber = new Grabber(new OutputDefinition("output.txt",
                 OutputDefinition.Type.LINK_FILE), progressMsg);
         grabber.downloadFiles(channel, params.length == 1
-                ? Snowflake.of(Instant.now())
-                : Snowflake.of(params[1]));
+                ? null : Snowflake.of(params[1]));
 
         Snowflake before = Snowflake.of(params[1]);
         grabber.saveUrls(grabber.grabAttachments(channel, before));

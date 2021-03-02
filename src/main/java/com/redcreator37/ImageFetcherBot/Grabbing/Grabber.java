@@ -11,18 +11,36 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Grabs items from message channels
+ */
 public class Grabber {
 
+    /**
+     * Constructs a new {@link Grabber} instance
+     *
+     * @param output      the {@link OutputDefinition} which defines where the
+     *                    content will be stored
+     * @param progressMsg the {@link Message} which will be used for
+     *                    reporting retrieval progress
+     */
     Grabber(OutputDefinition output, Message progressMsg) {
         this.output = output;
         this.progressMsg = progressMsg;
     }
 
+    /**
+     * Defines where the retrieved content will be stored
+     */
     private final OutputDefinition output;
 
+    /**
+     * The message object used for progress reporting
+     */
     private final Message progressMsg;
 
     Flux<Attachment> grabAttachments(MessageChannel channel, Snowflake before) {
@@ -30,6 +48,11 @@ public class Grabber {
                 .flatMap(message -> Flux.fromIterable(message.getAttachments()));
     }
 
+    /**
+     * Saves URLs of each {@link Attachment}
+     *
+     * @param attachments the {@link List<Attachment>} with attachments
+     */
     void saveUrls(Flux<Attachment> attachments) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(output.getLocation()))) {
             for (Attachment a : attachments.toIterable())
@@ -39,7 +62,17 @@ public class Grabber {
         }
     }
 
+    /**
+     * Downloads all images, videos and other files
+     *
+     * @param channel the {@link discord4j.core.object.entity.channel.Channel}
+     *                from which to download the attachments
+     * @param before  the {@link Snowflake} ID before which the messages
+     *                will be downloaded. Set to <code>null</code> to
+     *                attempt to download all items
+     */
     void downloadFiles(MessageChannel channel, Snowflake before) {
+        if (before == null) before = Snowflake.of(Instant.now());
         if (!Downloader.makeDirIfNotExists(new File("retrieved")))
             return;
         List<Attachment> attachments = grabAttachments(channel, before).collectList().block();
@@ -49,6 +82,13 @@ public class Grabber {
         }
     }
 
+    /**
+     * Updates the progress message
+     *
+     * @param progress number of already retrieved items
+     * @param goal     number of all items
+     * @return an empty {@link Mono}
+     */
     private Mono<Void> reportProgress(int progress, int goal) {
         progressMsg.getEmbeds().clear();
         return progressMsg.getChannel().flatMap(messageChannel ->
