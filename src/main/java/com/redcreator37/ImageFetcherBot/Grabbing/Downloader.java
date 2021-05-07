@@ -39,7 +39,7 @@ public final class Downloader {
                     .newChannel(new URL(attachment.getUrl()).openStream());
 
             // adds attachment snowflake to the filename to avoid collisions
-            Path outPath = Paths.get("retrieved", attachment.getId().toString()
+            Path outPath = Paths.get("retrieved", attachment.getId()
                     + "_" + attachment.getFilename()
                     .replace('{', ' ')      // replaces the opening and closing
                     .replace('}', ' '));    // snowflake ID string brackets

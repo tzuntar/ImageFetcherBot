@@ -23,17 +23,27 @@ public class CommandHandler {
     public static Mono<Void> grabFiles(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
+        String[] params = event.getMessage().getContent().split(" ");
+        if (params.length > 1 && !params[1].matches("before|after")) {
+            return channel.createEmbed(spec ->
+                    ProgressEmbeds.invalidSyntax(spec, true)).then();
+        }
+
         Message progressMsg = channel.createEmbed(spec ->
                 ProgressEmbeds.progressEmbed(spec, 1, 1)).block();
-
-        String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("retrieved",
                 OutputDefinition.Type.FILE_DIRECTORY), progressMsg);
-        grabber.grab(channel, params.length == 1
-                ? null : Snowflake.of(params[1]));
 
-        channel.createEmbed(ProgressEmbeds::retrievingFilesFinished).block();
-        return Mono.empty();
+        if (params.length < 2) {   // no parameters, get everything
+            grabber.grabBefore(channel, null);
+        } else if (params.length == 3) {    // before / after ID
+            if (params[1].equalsIgnoreCase("before"))
+                grabber.grabBefore(channel, Snowflake.of(params[2]));
+            else if (params[1].equalsIgnoreCase("after"))
+                grabber.grabAfter(channel, Snowflake.of(params[2]));
+        }
+
+        return channel.createEmbed(ProgressEmbeds::retrievingFilesFinished).then();
     }
 
     /**
@@ -46,17 +56,27 @@ public class CommandHandler {
     public static Mono<Void> grabLinks(MessageCreateEvent event) {
         MessageChannel channel = event.getMessage().getChannel().block();
         assert channel != null;
+        String[] params = event.getMessage().getContent().split(" ");
+        if (params.length > 1 && !params[1].matches("before|after")) {
+            return channel.createEmbed(spec ->
+                    ProgressEmbeds.invalidSyntax(spec, true)).then();
+        }
+
         Message progressMsg = channel.createEmbed(spec ->
                 ProgressEmbeds.progressEmbed(spec, 1, 1)).block();
-
-        String[] params = event.getMessage().getContent().split(" ");
         Grabber grabber = new Grabber(new OutputDefinition("output.txt",
                 OutputDefinition.Type.LINK_FILE), progressMsg);
-        grabber.grab(channel, params.length == 1
-                ? null : Snowflake.of(params[1]));
 
-        channel.createEmbed(ProgressEmbeds::savingLinksFinished).block();
-        return Mono.empty();
+        if (params.length < 2) {   // no parameters, get everything
+            grabber.grabBefore(channel, null);
+        } else if (params.length == 3) {    // before / after ID
+            if (params[1].equalsIgnoreCase("before"))
+                grabber.grabBefore(channel, Snowflake.of(params[2]));
+            else if (params[1].equalsIgnoreCase("after"))
+                grabber.grabAfter(channel, Snowflake.of(params[2]));
+        }
+
+        return channel.createEmbed(ProgressEmbeds::savingLinksFinished).then();
     }
 
 }

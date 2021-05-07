@@ -1,5 +1,6 @@
 package com.redcreator37.ImageFetcherBot.Grabbing;
 
+import com.redcreator37.ImageFetcherBot.DiscordBot;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.rest.util.Color;
 
@@ -52,6 +53,27 @@ public class ProgressEmbeds {
         spec.setColor(Color.GREEN);
         spec.addField("All links have been saved",
                 "Look in the file called `output.txt`", false);
+        spec.setTimestamp(Instant.now());
+    }
+
+    /**
+     * Creates an invalid syntax embed
+     *
+     * @param spec          a blank {@link EmbedCreateSpec}
+     * @param grabbingFiles set to {@code true} when grabbing files or
+     *                      {@code false} when grabbing links (used
+     *                      for supplying the correct command name)
+     */
+    public static void invalidSyntax(EmbedCreateSpec spec, boolean grabbingFiles) {
+        String commandName = DiscordBot.cmdPrefix + (grabbingFiles
+                ? "grabfiles" : "grablinks");
+        spec.setTitle("Invalid Syntax");
+        spec.setDescription("**You're using it wrong!** These are the supported commands:");
+        spec.setColor(Color.RED);
+        spec.addField("Everything:", commandName, false);
+        spec.addField("Before the message ID:", commandName + " before [ID]", true);
+        spec.addField("After the message ID:", commandName + " after [ID]", true);
+        spec.setFooter("Use Right Click ›› Copy ID with developer options enabled to get message IDs", null);
         spec.setTimestamp(Instant.now());
     }
 

@@ -21,6 +21,15 @@ import java.util.Objects;
 public class Grabber {
 
     /**
+     * Defines where the retrieved content will be stored
+     */
+    private final OutputDefinition output;
+    /**
+     * The message object used for progress reporting
+     */
+    private final Message progressMsg;
+
+    /**
      * Constructs a new {@link Grabber} instance
      *
      * @param output      the {@link OutputDefinition} which defines where the
@@ -34,17 +43,8 @@ public class Grabber {
     }
 
     /**
-     * Defines where the retrieved content will be stored
-     */
-    private final OutputDefinition output;
-
-    /**
-     * The message object used for progress reporting
-     */
-    private final Message progressMsg;
-
-    /**
-     * Returns all attachments in this {@link MessageChannel}
+     * Returns all attachments in this {@link MessageChannel} for all
+     * messages before this ID
      *
      * @param channel the {@link MessageChannel} to get the attachments from
      * @param before  the {@link Snowflake} ID before which the messages
@@ -52,14 +52,30 @@ public class Grabber {
      *                to download all items
      * @return a {@link Flux} of all attachments
      */
-    private Flux<Attachment> grabAttachments(MessageChannel channel, Snowflake before) {
+    private Flux<Attachment> grabAttachmentsBefore(MessageChannel channel, Snowflake before) {
         if (before == null) before = Snowflake.of(Instant.now());
         return channel.getMessagesBefore(before)
                 .flatMap(message -> Flux.fromIterable(message.getAttachments()));
     }
 
     /**
-     * Runs the grabber
+     * Returns all attachments in this {@link MessageChannel} for all messages
+     * after this ID
+     *
+     * @param channel the {@link MessageChannel} to get the attachments from
+     * @param after   the {@link Snowflake} ID after which the messages
+     *                will be downloaded. Set to {@code null} to attempt
+     *                to download all items
+     * @return a {@link Flux} of all attachments
+     */
+    private Flux<Attachment> grabAttachmentsAfter(MessageChannel channel, Snowflake after) {
+        if (after == null) after = Snowflake.of(Instant.now());
+        return channel.getMessagesAfter(after)
+                .flatMap(message -> Flux.fromIterable(message.getAttachments()));
+    }
+
+    /**
+     * Runs the grabber for all messages before this ID
      *
      * @param channel the {@link MessageChannel} on which to run the
      *                grabber
@@ -67,10 +83,25 @@ public class Grabber {
      *                will be downloaded. Set to {@code null} to attempt
      *                to download all items
      */
-    void grab(MessageChannel channel, Snowflake before) {
+    void grabBefore(MessageChannel channel, Snowflake before) {
         if (output.getType() == OutputDefinition.Type.LINK_FILE)
-            saveUrls(grabAttachments(channel, before));
-        else downloadFiles(channel, before);
+            saveUrls(grabAttachmentsBefore(channel, before));
+        else downloadFilesBefore(channel, before);
+    }
+
+    /**
+     * Runs the grabber for all messages after this ID
+     *
+     * @param channel the {@link MessageChannel} on which to run the
+     *                grabber
+     * @param after   the {@link Snowflake} ID after which the messages
+     *                will be downloaded. Set to {@code null} to attempt
+     *                to download all items
+     */
+    void grabAfter(MessageChannel channel, Snowflake after) {
+        if (output.getType() == OutputDefinition.Type.LINK_FILE)
+            saveUrls(grabAttachmentsAfter(channel, after));
+        else downloadFilesAfter(channel, after);
     }
 
     /**
@@ -88,7 +119,8 @@ public class Grabber {
     }
 
     /**
-     * Downloads all images, videos and other files
+     * Downloads all images, videos and other files for all messages
+     * before this ID
      *
      * @param channel the {@link MessageChannel} from which to download
      *                the attachments
@@ -96,10 +128,31 @@ public class Grabber {
      *                will be downloaded. Set to {@code null} to attempt
      *                to download all items
      */
-    private void downloadFiles(MessageChannel channel, Snowflake before) {
+    private void downloadFilesBefore(MessageChannel channel, Snowflake before) {
         if (!Downloader.makeDirIfNotExists(new File("retrieved")))
             return;
-        List<Attachment> attachments = grabAttachments(channel, before).collectList().block();
+        List<Attachment> attachments = grabAttachmentsBefore(channel, before).collectList().block();
+        for (int i = 1; i <= Objects.requireNonNull(attachments).size(); i++) {
+            if (i % 20 == 0)    // only create a new embed for every 20 items
+                reportProgress(i + 1, attachments.size()).block();
+            Downloader.downloadAttachment(attachments.get(i));
+        }
+    }
+
+    /**
+     * Downloads all images, videos and other files for all messages
+     * after this ID
+     *
+     * @param channel the {@link MessageChannel} from which to download
+     *                the attachments
+     * @param after   the {@link Snowflake} ID after which the messages
+     *                will be downloaded. Set to {@code null} to attempt
+     *                to download all items
+     */
+    private void downloadFilesAfter(MessageChannel channel, Snowflake after) {
+        if (!Downloader.makeDirIfNotExists(new File("retrieved")))
+            return;
+        List<Attachment> attachments = grabAttachmentsAfter(channel, after).collectList().block();
         for (int i = 1; i <= Objects.requireNonNull(attachments).size(); i++) {
             if (i % 20 == 0)    // only create a new embed for every 20 items
                 reportProgress(i + 1, attachments.size()).block();
